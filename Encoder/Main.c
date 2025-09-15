@@ -10,8 +10,6 @@
 //PA2->RX
 //PA3->Tx
 
-
-
 #include <stdint.h>
 #include <stdlib.h>
 #include "stm32f051x8.h"
