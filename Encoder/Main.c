@@ -117,6 +117,34 @@ void TIM6_IRQHandler(void)
    //float dir = direction ? 1.0f : -1.0f;
 }
 
+//------------------Serial------------------
+void USART2_Init(void) {
+    // 1. Activar el reloj para GPIOA y USART2
+    RCC->APB1ENR |= RCC_APB1ENR_USART2EN;
+
+    // 2. Configurar PA2 (TX) y PA3 (RX) como Alternate Function
+    GPIOA->MODER &= ~((3 << (2*2)) | (3 << (3*2)));   // limpiar
+    GPIOA->MODER |=  (2 << (2*2)) | (2 << (3*2));     // modo AF
+    GPIOA->AFR[0] |= (1 << (2*4)) | (1 << (3*4));     // AF1 = USART2
+
+    // 3. Configurar USART2
+    USART2->BRR = 8000000/9600;  // Baudrate = 9600, con fclk=48 MHz
+    USART2->CR1 = USART_CR1_TE | USART_CR1_UE; // Habilitar TX y USART
+}
+
+void USART2_SendChar(char c) {
+    while (!(USART2->ISR & USART_ISR_TXE)); // Esperar a que buffer esté vacío
+    USART2->TDR = c;
+}
+
+void USART2_SendString(const char *s) {
+    while (*s) {
+        USART2_SendChar(*s++);
+    }
+}
+
+
+
 int main(void)
 {
     configure_encoder();
@@ -132,8 +160,11 @@ int main(void)
     TIM6->DIER |= (1 << 0);
     NVIC->ISER[0] |= (1 << 17);
 
-    while(1)
-    {
-        // Loop vacío; todo se maneja con interrupciones
+    USART2_Init();
+
+    while (1) {
+        USART2_SendString("Hola\n");
+        for (volatile int i = 0; i < 500000; i++); // Delay burdo
     }
+
 }
