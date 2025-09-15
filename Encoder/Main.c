@@ -6,7 +6,11 @@
 //  ├─ OutZ ─────────► PA0 (turns)
 //  ├─ COM ──────────► GND
 //  └─ SHLD ─────────► GND
-// */
+// [Seria]
+//PA2->RX
+//PA3->Tx
+
+
 
 #include <stdint.h>
 #include <stdlib.h>
