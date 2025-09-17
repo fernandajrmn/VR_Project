@@ -50,13 +50,13 @@ void USART2_Init(void) {
     GPIOA->AFR[0] |= (1 << (2*4)) | (1 << (3*4));     // AF1 = USART2
 
     // 3. Configurar USART2
-    USART2->BRR = 8000000/9600;  // Baudrate = 9600, con fclk=48 MHz
+    USART2->BRR = 8000000/9600;  // Baudrate = 9600, con fclk=8 MHz
     USART2->CR1 = USART_CR1_TE | USART_CR1_UE; // Habilitar TX y USART
 }
 
 void USART2_SendChar(char c) {
     while (!(USART2->ISR & USART_ISR_TXE)); // Esperar a que buffer esté vacío
-    USART2->TDR = c;
+    USART2->TDR = c; //c es el caracter que se envia
 }
 
 void USART2_SendString(const char *s) {
@@ -72,11 +72,9 @@ void TIM3_IRQHandler(void)
     {
         TIM3->SR &= ~TIM_SR_UIF;
         direction = (TIM3->CR1 & TIM_CR1_DIR) ? 0 : 1;
-        total_ticks += direction ? 0x10000 : -0x10000;
+        total_ticks += direction ? 0x10000 : -0x10000; //65536 ticks
     }
 }
-
-
 
 
 // TIM1 – RPM calculation every 100 ms
@@ -108,30 +106,19 @@ void TIM1_BRK_UP_TRG_COM_IRQHandler(void)
         prev_ticks = current_ticks;
 
         // Angular velocity in rad/s
-       W = (int)rpm * 2 * 3.14159f / 60.0f;
-        //int w_frac = (int)((W) * 100); // 2 decimales
+       W = rpm * 2 * 3.14159f / 60.0f;
+
+        //Angle in degrees
         Angle = (current_ticks * 360.0f)/COUNTS_PER_REV;
+        //Normalized angle
         Angle = (int)fmodf(Angle, 360.0f);
-        //int angle_frac = (int)((Angle) * 100); // 2 decimales
+
+
         int angle_int = (int)Angle;
         int angle_frac = (int)((Angle - angle_int) * 100);
 
         int w_int = (int)W;
         int w_frac = (int)((W - w_int) * 100);
-
-
-
-        // Enviar valores por USART
-        //snprintf(buffer, sizeof(buffer), "Angle: %.2f deg\n", W);
-        //USART2_SendString(buffer);
-
-        // Convertir W y Angle a enteros para enviar por USART
-                //int angle_int = (int)Angle;
-                //int angle_frac = (int)((Angle - angle_int) * 100); // 2 decimales
-
-               // int w_int = (int)W;
-                //int w_frac = (int)((W - w_int) * 100); // 2 decimales
-
         snprintf(buffer, sizeof(buffer), "Angle: %d.%02d deg | W: %d.%02d rad/s\n",
         		angle_int, angle_frac, w_int, w_frac);
 
@@ -170,41 +157,14 @@ void configure_rpm_timer(void)
     NVIC_EnableIRQ(13);
 }
 
-//TIM6 – optional periodic task
-void TIM6_IRQHandler(void)
-{
-    TIM6->SR &= ~TIM_SR_UIF;
-   //float dir = direction ? 1.0f : -1.0f;
-}
-
-
 
 int main(void)
 {
     configure_encoder();
     configure_rpm_timer();
     USART2_Init();
-    // Ahora angle_now contiene el ángulo instantáneo en grados
-
-
-    // TIM6 setup (10ms interrupt)
-    RCC->APB1ENR |= (1 << 4);
-    TIM6->PSC = 8 - 1;
-    TIM6->ARR = 999;
-    TIM6->CR1 |= (1 << 0);
-    TIM6->DIER |= (1 << 0);
-    NVIC->ISER[0] |= (1 << 17);
-
-    //USART2_Init();
-
-    //char W_array[10];
-
-
     while (1) {
-        //sprintf(W_array, "%.2f\n", W);  // actualizar cada ciclo
-        //USART2_SendString(W_array);
-        //for (volatile int i = 0; i < 500000; i++);
-    }
 
+    }
 
 }
