@@ -65,6 +65,9 @@ void USART2_SendString(const char *s) {
     }
 }
 
+
+//----------------Encoder----------------------
+
 // TIM3 – Encoder overflow interrupt
 void TIM3_IRQHandler(void)
 {
@@ -119,9 +122,8 @@ void TIM1_BRK_UP_TRG_COM_IRQHandler(void)
 
         int w_int = (int)W;
         int w_frac = (int)((W - w_int) * 100);
-        snprintf(buffer, sizeof(buffer), "Angle: %d.%02d deg | W: %d.%02d rad/s\n",
-        		angle_int, angle_frac, w_int, w_frac);
-
+        //snprintf(buffer, sizeof(buffer), "Angle: %d.%02d deg | W: %d.%02d rad/s\n",angle_int, angle_frac, w_int, w_frac);
+        snprintf(buffer, sizeof(buffer), "%d.%02d %d.%02d\n", angle_int, angle_frac, w_int, w_frac);
         USART2_SendString(buffer);
 
     }
